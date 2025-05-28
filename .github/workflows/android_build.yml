@@ -1,0 +1,40 @@
+name: Build APK
+
+on:
+  workflow_dispatch:  # consente di avviarlo manualmente da Actions
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential zip unzip openjdk-17-jdk python3-pip
+        pip install --upgrade pip
+        pip install buildozer cython virtualenv
+
+    - name: Initialize buildozer.spec if not exists
+      run: |
+        if [ ! -f buildozer.spec ]; then
+          buildozer init
+        fi
+
+    - name: Build APK
+      run: |
+        buildozer android debug
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: pannello.apk
+        path: bin/*.apk
